@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 52;
+	objectVersion = 60;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -13,12 +13,11 @@
 		07AF13892178AD350064D404 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 07AF13872178AD350064D404 /* Main.storyboard */; };
 		07AF138B2178AD370064D404 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 07AF138A2178AD370064D404 /* Assets.xcassets */; };
 		07AF138E2178AD370064D404 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 07AF138C2178AD370064D404 /* LaunchScreen.storyboard */; };
-		A535F5D727B957310096D0C3 /* SimpleTracer in Frameworks */ = {isa = PBXBuildFile; productRef = A535F5D627B957310096D0C3 /* SimpleTracer */; };
 		A56C000127A84D3F00CB137B /* DemoMacApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A56C000027A84D3F00CB137B /* DemoMacApp.swift */; };
 		A56C000327A84D3F00CB137B /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A56C000227A84D3F00CB137B /* ContentView.swift */; };
 		A56C000527A84D4100CB137B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A56C000427A84D4100CB137B /* Assets.xcassets */; };
 		A56C000827A84D4100CB137B /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A56C000727A84D4100CB137B /* Preview Assets.xcassets */; };
-		A589FDA227AD7AF6005A2E3C /* SimpleTracer in Frameworks */ = {isa = PBXBuildFile; productRef = A589FDA127AD7AF6005A2E3C /* SimpleTracer */; };
+		E7F1D0352C690F3D001D08C3 /* SimpleTracer in Frameworks */ = {isa = PBXBuildFile; productRef = E7F1D0342C690F3D001D08C3 /* SimpleTracer */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -52,7 +51,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A589FDA227AD7AF6005A2E3C /* SimpleTracer in Frameworks */,
+				E7F1D0352C690F3D001D08C3 /* SimpleTracer in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -60,7 +59,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A535F5D727B957310096D0C3 /* SimpleTracer in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -171,7 +169,7 @@
 			);
 			name = Demo;
 			packageProductDependencies = (
-				A589FDA127AD7AF6005A2E3C /* SimpleTracer */,
+				E7F1D0342C690F3D001D08C3 /* SimpleTracer */,
 			);
 			productName = Demo;
 			productReference = 07AF13812178AD350064D404 /* Demo.app */;
@@ -191,7 +189,6 @@
 			);
 			name = DemoMac;
 			packageProductDependencies = (
-				A535F5D627B957310096D0C3 /* SimpleTracer */,
 			);
 			productName = DemoMac;
 			productReference = A56CFFFE27A84D3F00CB137B /* DemoMac.app */;
@@ -228,7 +225,7 @@
 			);
 			mainGroup = 07AF134B217889810064D404;
 			packageReferences = (
-				A589FDA027AD7AF6005A2E3C /* XCRemoteSwiftPackageReference "SimpleTracer" */,
+				E7F1D0332C690EFE001D08C3 /* XCLocalSwiftPackageReference "tracerpackage" */,
 			);
 			productRefGroup = 07AF1356217889820064D404 /* Products */;
 			projectDirPath = "";
@@ -488,6 +485,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = A3NJA9SB6J;
 				INFOPLIST_FILE = Demo/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -503,6 +501,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = A3NJA9SB6J;
 				INFOPLIST_FILE = Demo/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -616,26 +615,17 @@
 		};
 /* End XCConfigurationList section */
 
-/* Begin XCRemoteSwiftPackageReference section */
-		A589FDA027AD7AF6005A2E3C /* XCRemoteSwiftPackageReference "SimpleTracer" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/IGRSoft/SimpleTracer";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 0.1.1;
-			};
+/* Begin XCLocalSwiftPackageReference section */
+		E7F1D0332C690EFE001D08C3 /* XCLocalSwiftPackageReference "tracerpackage" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = tracerpackage;
 		};
-/* End XCRemoteSwiftPackageReference section */
+/* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		A535F5D627B957310096D0C3 /* SimpleTracer */ = {
+		E7F1D0342C690F3D001D08C3 /* SimpleTracer */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = A589FDA027AD7AF6005A2E3C /* XCRemoteSwiftPackageReference "SimpleTracer" */;
-			productName = SimpleTracer;
-		};
-		A589FDA127AD7AF6005A2E3C /* SimpleTracer */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = A589FDA027AD7AF6005A2E3C /* XCRemoteSwiftPackageReference "SimpleTracer" */;
+			package = E7F1D0332C690EFE001D08C3 /* XCLocalSwiftPackageReference "tracerpackage" */;
 			productName = SimpleTracer;
 		};
 /* End XCSwiftPackageProductDependency section */
