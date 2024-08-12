@@ -124,30 +124,32 @@ fileprivate func checksum(_ buf: UnsafeRawPointer, _ bufLen: Int) -> UInt16 {
 }
 
 public func hostStringWithData(_ data: Data) -> String {
-    let maxHostLen = UInt32(NI_MAXHOST)
-    let maxPortLen = UInt32(NI_MAXSERV)
-    let hostStrRef = UnsafeMutablePointer<Int8>.allocate(capacity: Int(maxHostLen))
+    let maxHostLen = Int(NI_MAXHOST)
+    let hostStrRef = UnsafeMutablePointer<Int8>.allocate(capacity: maxHostLen)
     defer {
         hostStrRef.deallocate()
     }
-    let portStrRef = UnsafeMutablePointer<Int8>.allocate(capacity: Int(maxPortLen))
-    defer {
-        portStrRef.deallocate()
+    
+    let addr: sockaddr = data.withUnsafeBytes { (rawBufferPointer) -> sockaddr in
+        return rawBufferPointer.load(as: sockaddr.self)
     }
     
-    var addr = data.to(sockaddr.self)
-    getnameinfo(&addr,
-                socklen_t(data.count),
-                hostStrRef,
-                maxHostLen,
-                portStrRef,
-                maxPortLen,
-                NI_NUMERICHOST | NI_NUMERICSERV)
+    let family = addr.sa_family
     
-    let hostStr = String(cString: hostStrRef, encoding: .ascii)
-    let portStr = String(cString: portStrRef, encoding: .ascii)
-    let addressString = "\(hostStr ?? "nil"):\(portStr ?? "nil")"
-    return addressString
+    let result = data.withUnsafeBytes { (rawBufferPointer) -> String in
+        let sockaddrPtr = rawBufferPointer.baseAddress!.assumingMemoryBound(to: sockaddr.self)
+        
+        let socklen = socklen_t(family == AF_INET ? MemoryLayout<sockaddr_in>.size : MemoryLayout<sockaddr_in6>.size)
+        
+        if getnameinfo(sockaddrPtr, socklen, hostStrRef, socklen_t(maxHostLen), nil, 0, NI_NUMERICHOST) == 0 {
+            let hostStr = String(cString: hostStrRef)
+            return hostStr
+        } else {
+            return "nil"
+        }
+    }
+    
+    return result
 }
 
 public class SimplePing: Ping {
@@ -492,15 +494,12 @@ public class SimplePing: Ping {
         var addrLen = socklen_t(MemoryLayout<sockaddr_storage>.size)
         
         let maxHostLen = UInt32(NI_MAXHOST)
-        let maxPortLen = UInt32(NI_MAXSERV)
         let hostStrRef = UnsafeMutablePointer<Int8>.allocate(capacity: Int(maxHostLen))
         defer {
             hostStrRef.deallocate()
         }
-        let portStrRef = UnsafeMutablePointer<Int8>.allocate(capacity: Int(maxPortLen))
-        defer {
-            portStrRef.deallocate()
-        }
+        
+        print("[DEBUG] Attempting to read data from socket...")
         
         addrRef.withMemoryRebound(to: sockaddr.self, capacity: 1, {
             bytesRead = recvfrom(CFSocketGetNative(self._socket),
@@ -509,37 +508,66 @@ public class SimplePing: Ping {
                                  0,
                                  $0,
                                  &addrLen)
-            getnameinfo($0,
-                        addrLen,
-                        hostStrRef,
-                        maxHostLen,
-                        portStrRef,
-                        maxPortLen,
-                        NI_NUMERICHOST | NI_NUMERICSERV)
+            if bytesRead > 0 {
+                print("[DEBUG] Bytes read: \(bytesRead)")
+            } else {
+                print("[DEBUG] No bytes read, recvfrom returned \(bytesRead)")
+            }
+
+            // Check the address family
+            let sa_family = $0.pointee.sa_family
+            if sa_family == AF_INET {
+                print("[DEBUG] Received IPv4 response")
+            } else if sa_family == AF_INET6 {
+                print("[DEBUG] Received IPv6 response")
+            } else {
+                print("[DEBUG] Received unknown address family: \(sa_family)")
+            }
+
+            // Use getnameinfo to extract the numeric host address
+            let result = getnameinfo($0,
+                                     addrLen,
+                                     hostStrRef,
+                                     socklen_t(maxHostLen),
+                                     nil,
+                                     0,
+                                     NI_NUMERICHOST)
+            if result == 0 {
+                print("[DEBUG] Successfully retrieved address")
+            } else {
+                print("[DEBUG] Failed to retrieve address, getnameinfo error: \(result)")
+            }
         })
         
         let hostStr = String(cString: hostStrRef, encoding: .ascii)
         let sourceAddressString = "\(hostStr ?? "nil")"
         
+        print("[DEBUG] Source address: \(sourceAddressString)")
+        
         var err = 0
         if bytesRead < 0 {
             err = Int(errno)
+            print("[ERROR] Error reading data from socket, errno: \(err)")
         }
         
         if bytesRead > 0 {
             var sequenceNumber: UInt16 = 0
             var packet = Data(bytes: buffer, count: bytesRead)
+            print("[DEBUG] Packet data (hex): \(packet.hex)")
+            
             if self.validatePingResponsePacket(&packet, sequence: &sequenceNumber) {
+                print("[DEBUG] Valid ping response packet received, sequence number: \(sequenceNumber)")
                 self.delegate?.pinger(self, didReceivePingResponsePacket: packet, sequence: sequenceNumber, from: sourceAddressString)
             } else {
+                print("[DEBUG] Unexpected packet received from \(sourceAddressString)")
                 self.delegate?.pinger(self, didReceiveUnexpectedPacket: packet, from: sourceAddressString)
             }
         } else {
             if err == 0 {
                 err = Int(EPIPE)
             }
-            
             let error = PingError.posixError(type: "Could not receive bytes", code: err)
+            print("[ERROR] Failed to receive bytes, error: \(error.localizedDescription)")
             self.didFailWithError(error)
         }
     }
@@ -595,12 +623,19 @@ public class SimplePing: Ping {
     private func hostResolutionDone(_ host: CFHost) {
         var resolved: DarwinBoolean = false
         let addresses = CFHostGetAddressing(host, &resolved)
+        
         var success = false
         if let addresses = addresses,
             resolved.boolValue {
             for address in addresses.takeRetainedValue() as NSArray {
                 if let addressData = address as? NSData as Data? {
                     let addr = addressData.to(sockaddr.self)
+                    // print addr as string
+                    
+                    let hostStr = hostStringWithData(addressData)
+                    
+                    print(hostStr)
+                    
                     if addressData.count >= MemoryLayout<sockaddr>.size {
                         switch addr.sa_family {
                         case UInt8(AF_INET):
